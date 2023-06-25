@@ -4,17 +4,14 @@ const XLSX = require("xlsx");
 const User = require("./models/User");
 const PatentInfo = require("./models/PatentInfo");
 const PublicationInfo = require("./models/PublicationInfo");
+const db = require("./db");
 const app = express();
 
 app.use(express.json());
 
-mongoose
-  .connect("mongodb://0.0.0.0:27017/Faculty-Data-Management-System", {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => console.log("connection sucessfull!!"))
-  .catch((err) => console.log(err));
+// initialize db
+// db()
+
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
