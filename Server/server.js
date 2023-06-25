@@ -1,34 +1,25 @@
-<<<<<<< HEAD
 const express = require('express');
 const mongoose = require('mongoose');
 const XLSX = require('xlsx');
 const User = require('./models/User');
 const PatentInfo = require('./models/PatentInfo');
 const PublicationInfo = require('./models/PublicationInfo');
-
-=======
-const express = require("express");
-const db = require("./db");
->>>>>>> 095effa44c06a0b2f5b3f51932551dccb146d06c
 const app = express();
+
 app.use(express.json());
 
-//initialze db
-db();
+mongoose
+    .connect("mongodb://0.0.0.0:27017/Faculty-Data-Management-System", {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+    .then(() => console.log("connection sucessfull!!"))
+    .catch((err) => console.log(err));
 
-<<<<<<< HEAD
 
 
 app.get('/', (req, res) => {
     res.send('Hello World!');
-=======
-app.get("/", (req, res) => {
-  res.send("Hello World!");
-});
-
-app.listen(5500, () => {
-  console.log("Server started on port 5500");
->>>>>>> 095effa44c06a0b2f5b3f51932551dccb146d06c
 });
 
 app.post('/register', async (req, res) => {
@@ -51,7 +42,6 @@ app.post('/register', async (req, res) => {
             department: req.body.department,
         });
 
-<<<<<<< HEAD
         await newUser.save();
         res.status(201).json({ message: 'User created successfully' });
     } catch (error) {
@@ -113,9 +103,9 @@ app.post('/publication-info', async (req, res) => {
       res.status(500).json({ error: 'Error saving publication info' });
     }
   });
+
+
   
 app.listen(5500, () => {
     console.log('Server started on port 5500');
 });
-=======
->>>>>>> 095effa44c06a0b2f5b3f51932551dccb146d06c
