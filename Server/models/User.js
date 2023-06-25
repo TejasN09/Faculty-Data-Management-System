@@ -1,6 +1,11 @@
 const mongoose = require("mongoose");
+const { v4: uuidv4 } = require("uuid");
 
 const userSchema = new mongoose.Schema({
+  userId: {
+    type: String,
+    default: uuidv4(),
+  },
   firstName: {
     type: String,
     required: true,
@@ -13,10 +18,7 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
-  username: {
-    type: String,
-    required: true,
-  },
+  //removed username
   password: {
     type: String,
     required: true,

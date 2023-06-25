@@ -1,6 +1,11 @@
 const mongoose = require("mongoose");
+const { v4: uuidv4 } = require("uuid");
 
 const patentInfoSchema = new mongoose.Schema({
+  userId: {
+    type: String,
+    default: uuidv4(),
+  },
   patentApplicationId: {
     type: String,
     required: true,
