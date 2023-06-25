@@ -105,6 +105,43 @@ app.post("/publication-info/:userId", async (req, res) => {
     }
 });
 
+//user profile can be updated
+app.post("/edit-profile/:userId", async (req, res) => {
+    try {
+        const userId = req.params.userId;
+
+        const updatedUser = await User.findOneAndUpdate(
+            { userId: userId },
+            {
+                firstName: req.body.firstName,
+                lastName: req.body.lastName,
+                email: req.body.email,
+                password: req.body.password,
+                age: req.body.age,
+                dateOfBirth: req.body.dateOfBirth,
+                address: {
+                    fullAddress: req.body.address.fullAddress,
+                    city: req.body.address.city,
+                    state: req.body.address.state,
+                },
+                contact: req.body.contact,
+                university: req.body.university,
+                universityId: req.body.universityId,
+                department: req.body.department,
+            },
+            { new: true }
+        );
+
+        updatedUser.save();
+
+        res.status(201).json({ message: "User updated successfully" });
+    } catch (error) {
+        console.error("Error updating user to MongoDB:", error);
+        res.status(500).json({ error: "Error updating user" });
+    }
+});
+
+           
 app.listen(5500, () => {
     console.log("Server started on port 5500");
 });
