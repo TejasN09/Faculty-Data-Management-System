@@ -12,11 +12,11 @@ const DevelopmentProgrammeSchema = new Schema({
     type: String,
     required: true,
   },
-  titleofprogramme: {
+  titleOfProgramme: {
     type: String,
     required: true,
   },
-  durationofprogramme: {
+  durationOfProgramme: {
     from: {
       type: date,
       required: true,

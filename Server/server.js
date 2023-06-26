@@ -5,6 +5,7 @@ const { v4: uuidv4 } = require("uuid");
 const User = require("./models/User");
 const PatentInfo = require("./models/PatentInfo");
 const PublicationInfo = require("./models/PublicationInfo");
+const DevelopmentProgramme = require("./models/DevelopmentProgrammes");
 const db = require("./db");
 const app = express();
 
@@ -89,6 +90,27 @@ app.post("/register/:userId", async (req, res) => {
     } catch (error) {
         console.error("Error saving publication info to MongoDB:", error);
         res.status(500).json({ error: "Error saving publication info" });
+    }
+});
+
+app.post("/addition-details/:userId", async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        const DevelopmentProgramme = new DevelopmentProgramme({
+            userId: userId,
+            name: req.body.name,
+            titleOfProgramme: req.body.titleOfProgramme,
+            durationOfProgramme: {
+                from: req.body.durationOfProgramme.from,
+                to: req.body.durationOfProgramme.to,
+            },
+        });
+        
+        await DevelopmentProgramme.save();
+        res.status(201).json({ message: "Development Programme created successfully" });
+    } catch (error) {
+        console.error("Error saving Development Programme to MongoDB:", error);
+        res.status(500).json({ error: "Error saving Development Programme" });
     }
 });
 
