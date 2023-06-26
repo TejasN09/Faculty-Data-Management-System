@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
+const { v4: uuidv4 } = require("uuid");
 
 const DevelopmentProgrammeSchema = new Schema({
   userId: {
@@ -18,11 +19,11 @@ const DevelopmentProgrammeSchema = new Schema({
   },
   durationOfProgramme: {
     from: {
-      type: date,
+      type: Date,
       required: true,
     },
     to: {
-      type: date,
+      type: Date,
       required: true,
     },
   },

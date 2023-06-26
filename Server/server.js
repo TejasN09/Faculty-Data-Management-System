@@ -3,7 +3,6 @@ const mongoose = require("mongoose");
 const XLSX = require("xlsx");
 const { v4: uuidv4 } = require("uuid");
 const User = require("./models/User");
-const PatentInfo = require("./models/PatentInfo");
 const PublicationInfo = require("./models/PublicationInfo");
 const DevelopmentProgramme = require("./models/DevelopmentProgrammes");
 const db = require("./db");
@@ -96,7 +95,7 @@ app.post("/register/:userId", async (req, res) => {
 app.post("/addition-details/:userId", async (req, res) => {
     try {
         const userId = req.params.userId;
-        const DevelopmentProgramme = new DevelopmentProgramme({
+        const newDevelopmentProgramme = new DevelopmentProgramme({
             userId: userId,
             name: req.body.name,
             titleOfProgramme: req.body.titleOfProgramme,
@@ -106,7 +105,7 @@ app.post("/addition-details/:userId", async (req, res) => {
             },
         });
         
-        await DevelopmentProgramme.save();
+        await newDevelopmentProgramme.save();
         res.status(201).json({ message: "Development Programme created successfully" });
     } catch (error) {
         console.error("Error saving Development Programme to MongoDB:", error);
