@@ -26,6 +26,7 @@ app.post("/register", async (req, res) => {
             lastName: req.body.lastName,
             email: req.body.email,
             password: req.body.password,
+            username: req.body.username,
             age: req.body.age,
             dateOfBirth: req.body.dateOfBirth,
             address: {
@@ -47,34 +48,8 @@ app.post("/register", async (req, res) => {
     }
 });
 
-app.post("/patent-info/:userId", async (req, res) => {
-    try {
-        const userId = req.params.userId;
-        const newPatentInfo = new PatentInfo({
-            userId: userId,
-            patentApplicationId: req.body.patentApplicationId,
-            statusOfPatent: req.body.statusOfPatent,
-            inventorsName: req.body.inventorsName,
-            titleOfPatent: req.body.titleOfPatent,
-            applicantsNumber: req.body.applicantsNumber,
-            patentFilledDate: req.body.patentFilledDate,
-            patentPublishedDate: req.body.patentPublishedDate,
-            patentGrantedDate: req.body.patentGrantedDate,
-            patentPublishedNumber: req.body.patentPublishedNumber,
-            patentGrantedNumber: req.body.patentGrantedNumber,
-            assigneeName: req.body.assigneeName,
-            mediaFile: req.body.mediaFile,
-        });
-
-        await newPatentInfo.save();
-        res.status(201).json({ message: "Patent Info created successfully" });
-    } catch (error) {
-        console.error("Error saving patent info to MongoDB:", error);
-        res.status(500).json({ error: "Error saving patent info" });
-    }
-});
-
-app.post("/publication-info/:userId", async (req, res) => {
+//added all details in one place
+app.post("/register/:userId", async (req, res) => {
     try {
         const userId = req.params.userId;
         const newPublicationInfo = new PublicationInfo({
@@ -95,6 +70,18 @@ app.post("/publication-info/:userId", async (req, res) => {
             researcherId: req.body.researcherId,
             scopusId: req.body.scopusId,
             googleScholarId: req.body.googleScholarId,
+            patentApplicationId: req.body.patentApplicationId,
+            statusOfPatent: req.body.statusOfPatent,
+            inventorsName: req.body.inventorsName,
+            titleOfPatent: req.body.titleOfPatent,
+            applicantsNumber: req.body.applicantsNumber,
+            patentFilledDate: req.body.patentFilledDate,
+            patentPublishedDate: req.body.patentPublishedDate,
+            patentGrantedDate: req.body.patentGrantedDate,
+            patentPublishedNumber: req.body.patentPublishedNumber,
+            patentGrantedNumber: req.body.patentGrantedNumber,
+            assigneeName: req.body.assigneeName,
+            mediaFile: req.body.mediaFile,
         });
 
         await newPublicationInfo.save();
