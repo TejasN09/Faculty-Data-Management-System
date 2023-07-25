@@ -23,11 +23,11 @@ const userSchema = new mongoose.Schema({
     required: true,
     minLength: 6,
   },
-  username: {
-    type: String,
-    required: true,
-    unique: true,
-  },
+  // username: {
+  //   type: String,
+  //   required: true,
+  //   unique: true,
+  // },
   age: {
     type: Number,
     required: true,

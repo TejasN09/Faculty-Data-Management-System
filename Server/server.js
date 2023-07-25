@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const XLSX = require("xlsx");
+const xlsx = require("xlsx");
+const fs = require("fs");
 const { v4: uuidv4 } = require("uuid");
 const User = require("./models/User");
 const PublicationInfo = require("./models/PublicationInfo");
@@ -54,36 +55,8 @@ app.post("/register/:userId", async (req, res) => {
         const userId = req.params.userId;
         const newPublicationInfo = new PublicationInfo({
             userId: userId,
-            wosSubjectId: req.body.wosSubjectId,
-            wosSubject: req.body.wosSubject,
-            expertiseId: req.body.expertiseId,
-            expertise: req.body.expertise,
-            briefExpertise: req.body.briefExpertise,
-            qualification: req.body.qualification,
-            subject: req.body.subject,
-            organization: req.body.organization,
-            organizationType: req.body.organizationType,
-            organizationURL: req.body.organizationURL,
-            workingFromMonth: req.body.workingFromMonth,
-            workingFromYear: req.body.workingFromYear,
-            orcidId: req.body.orcidId,
-            researcherId: req.body.researcherId,
-            scopusId: req.body.scopusId,
-            googleScholarId: req.body.googleScholarId,
-            patentApplicationId: req.body.patentApplicationId,
-            statusOfPatent: req.body.statusOfPatent,
-            inventorsName: req.body.inventorsName,
-            titleOfPatent: req.body.titleOfPatent,
-            applicantsNumber: req.body.applicantsNumber,
-            patentFilledDate: req.body.patentFilledDate,
-            patentPublishedDate: req.body.patentPublishedDate,
-            patentGrantedDate: req.body.patentGrantedDate,
-            patentPublishedNumber: req.body.patentPublishedNumber,
-            patentGrantedNumber: req.body.patentGrantedNumber,
-            assigneeName: req.body.assigneeName,
-            mediaFile: req.body.mediaFile,
+            ...req.body,
         });
-
         await newPublicationInfo.save();
         res.status(201).json({ message: "Publication info created successfully" });
     } catch (error) {
@@ -104,7 +77,7 @@ app.post("/addition-details/:userId", async (req, res) => {
                 to: req.body.durationOfProgramme.to,
             },
         });
-        
+
         await newDevelopmentProgramme.save();
         res.status(201).json({ message: "Development Programme created successfully" });
     } catch (error) {
@@ -149,7 +122,73 @@ app.post("/edit-profile/:userId", async (req, res) => {
     }
 });
 
-           
+
+
+app.get("/fetch-data", async (req, res) => {
+    // const userId = req.params.userId;
+
+    //array of strings where admin will select the fields to be fetched from the frontend
+    const selectedUserFields = req.body.selectedUserFields;
+    const selectedFields = req.body.selectedFields; 
+
+    try {
+        const userData = await User.find({}, selectedUserFields).lean();
+        const data = await PublicationInfo.find({}, selectedFields).lean();
+
+        //if no data is found in the database
+        if (!Array.isArray(data) || data.length === 0 || !Array.isArray(userData) || userData.length === 0) {
+            console.log("No data found in the database");
+        }
+
+        // Combine the data from the two collections users and publicationInfo using the userId field
+        const combinedData = data.map((publication) => {
+            const matchingUser = userData.find(
+                (user) => user.userId === publication.userId
+            );
+            return { ...publication, ...matchingUser };
+        });
+
+        // Reorder the data to match the order of the selected fields
+        const reorderedData = combinedData.map((item) => {
+            const orderedItem = {};
+            selectedUserFields.forEach((field) => {
+                orderedItem[field] = item[field];
+            });
+            selectedFields.forEach((field) => {
+                orderedItem[field] = item[field];
+            });
+            return orderedItem;
+        });
+        console.log(reorderedData);
+
+        // Generate the custom header for the Excel sheet
+        const header = [...selectedUserFields, ...selectedFields];
+        console.log(header);
+
+        // Create a new workbook
+        const workbook = xlsx.utils.book_new();
+        const worksheet = xlsx.utils.json_to_sheet(reorderedData, { header });
+
+        xlsx.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+
+        const excelBuffer = xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+
+        // Save the Excel file to the server (optional)
+        const filename = `demo.xlsx`;
+        fs.writeFileSync(filename, excelBuffer);
+
+        // Send the Excel file as a downloadable attachment
+        res.set('Content-Disposition', `attachment; filename=demo${Date.now()}.xlsx`);
+        res.send(excelBuffer);
+
+        fs.unlinkSync(filename);
+    }
+    catch (error) {
+        console.error("Error fetching data from MongoDB:", error);
+        res.status(500).json({ error: "Error fetching data" });
+    }
+});
+
 app.listen(5500, () => {
     console.log("Server started on port 5500");
 });
