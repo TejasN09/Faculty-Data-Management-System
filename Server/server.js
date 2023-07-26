@@ -40,6 +40,7 @@ app.post("/register", async (req, res) => {
             universityId: req.body.universityId,
             department: req.body.department,
         });
+        console.log(newUser);
 
         await newUser.save();
         res.status(201).json({ message: "User created successfully" });
@@ -129,45 +130,92 @@ app.get("/fetch-data", async (req, res) => {
 
     //array of strings where admin will select the fields to be fetched from the frontend
     const selectedUserFields = req.body.selectedUserFields;
-    const selectedFields = req.body.selectedFields; 
+    const selectedFields = req.body.selectedFields;
 
     try {
-        const userData = await User.find({}, selectedUserFields).lean();
-        const data = await PublicationInfo.find({}, selectedFields).lean();
+        const data = await PublicationInfo.aggregate([
+            {
+                $lookup: {
+                    // The name of the "User" collection
+                    from: "users",
+                    // The field in the "PublicationInfo" collection to match with
+                    localField: "userId",
+                    // The field in the "User" collection to match with
+                    foreignField: "userId",
+                    // The name of the array to store the matched data from the "User" collection
+                    as: "userData",
+                },
+            },
+            {
+                $unwind: "$userData",
+            },
+            {
+                $replaceRoot: {
+                    newRoot: { $mergeObjects: ["$userData", "$$ROOT"] },
+                },
+            },
 
-        //if no data is found in the database
-        if (!Array.isArray(data) || data.length === 0 || !Array.isArray(userData) || userData.length === 0) {
-            console.log("No data found in the database");
+            {
+                $project: {
+                    _id: 0, // Exclude "_id" field from the result
+                    ...selectedUserFields.reduce((obj, field) => ({ ...obj, [field]: 1 }), {}), // Include only the selected fields from the "User" collection
+                    ...selectedFields.reduce((obj, field) => ({ ...obj, [field]: 1 }), {}), // Include only the selected fields from the "PublicationInfo" collection
+                },
+            },
+
+        ]);
+        // console.log(data);
+
+        // Combine the data by userId and remove duplicate fields from the array(data)
+        function combineDataByUserId(data) {
+            const userMap = new Map();
+            //using map to store the data
+            data.forEach((item) => {
+                const userId = item.userId;
+
+                if (userMap.has(userId)) {
+                    const existingData = userMap.get(userId);
+
+                    for (const key in item) {
+                        //if key is not userId then add the data to the map
+                        if (key !== "userId") {
+                            if (Array.isArray(item[key])) {
+                                existingData[key] = [...new Set([...existingData[key], ...item[key]])];
+                            } else { //if key is not an array then add the data to the map
+                                if (existingData[key] !== undefined && existingData[key] !== item[key]) {
+                                    existingData[key] = [existingData[key], item[key]].filter(Boolean).join(", "); //after adding the data to the map add comma to separate the data
+                                } else {
+                                    existingData[key] = item[key];
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    const userData = { ...item };
+                    userMap.set(userId, userData);
+                }
+            });
+
+            return Array.from(userMap.values());
         }
 
-        // Combine the data from the two collections users and publicationInfo using the userId field
-        const combinedData = data.map((publication) => {
-            const matchingUser = userData.find(
-                (user) => user.userId === publication.userId
-            );
-            return { ...publication, ...matchingUser };
-        });
+        // call the function
+        const combinedData = combineDataByUserId(data);
 
-        // Reorder the data to match the order of the selected fields
-        const reorderedData = combinedData.map((item) => {
-            const orderedItem = {};
-            selectedUserFields.forEach((field) => {
-                orderedItem[field] = item[field];
-            });
-            selectedFields.forEach((field) => {
-                orderedItem[field] = item[field];
-            });
-            return orderedItem;
+        // Remove the "userId" field from the combined data
+        const finalData = combinedData.map((item) => {
+            const { userId, ...rest } = item;
+            return rest;
         });
-        console.log(reorderedData);
 
         // Generate the custom header for the Excel sheet
-        const header = [...selectedUserFields, ...selectedFields];
+        // remove the "userId" field from the header
+        const header = [...selectedUserFields, ...selectedFields].filter((field) => field !== "userId");
         console.log(header);
 
         // Create a new workbook
         const workbook = xlsx.utils.book_new();
-        const worksheet = xlsx.utils.json_to_sheet(reorderedData, { header });
+        const worksheet = xlsx.utils.json_to_sheet(finalData, { header });
 
         xlsx.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
 

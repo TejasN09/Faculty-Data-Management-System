@@ -23,11 +23,6 @@ const userSchema = new mongoose.Schema({
     required: true,
     minLength: 6,
   },
-  // username: {
-  //   type: String,
-  //   required: true,
-  //   unique: true,
-  // },
   age: {
     type: Number,
     required: true,
@@ -35,6 +30,11 @@ const userSchema = new mongoose.Schema({
   dateOfBirth: {
     type: Date,
     required: true,
+  },
+  username: {
+    type: String,
+    required: true,
+    unique: true,
   },
   address: {
     fullAddress: {
