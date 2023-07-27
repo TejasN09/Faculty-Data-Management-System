@@ -2,6 +2,10 @@ const mongoose = require("mongoose");
 const { v4: uuidv4 } = require("uuid");
 
 const publicationInfoSchema = new mongoose.Schema({
+  publicationId: {
+    type: mongoose.Schema.Types.ObjectId,
+    default: mongoose.Types.ObjectId,
+  },
   userId: {
     type: String,
     default: uuidv4(),

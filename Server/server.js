@@ -2,21 +2,53 @@ const express = require("express");
 const mongoose = require("mongoose");
 const xlsx = require("xlsx");
 const fs = require("fs");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const { v4: uuidv4 } = require("uuid");
 const User = require("./models/User");
 const PublicationInfo = require("./models/PublicationInfo");
 const DevelopmentProgramme = require("./models/DevelopmentProgrammes");
 const db = require("./db");
 const app = express();
+require("dotenv").config();
 
 app.use(express.json());
 
 // initialize db
 db()
 
-
 app.get("/", (req, res) => {
     res.send("Hello World!");
+});
+
+app.post("/login", async (req, res) => {
+    const { email, password } = req.body;
+    try {
+        const user = await User.findOne({ email: email });
+        if (!user) {
+            return res.status(400).json({ error: "User not found" });
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        console.log(password, user.password, isMatch);
+        if (!isMatch) {
+            return res.status(400).json({ error: "Invalid credentials" });
+        }
+
+        const token = jwt.sign({ id: user._id }, process.env.JWT_KEY);
+
+        res.json({
+            token,
+            user: {
+                id: user._id,
+                username: user.username,
+                email: user.email
+            }
+        })
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ error: "Server error" });
+    }
 });
 
 app.post("/register", async (req, res) => {
@@ -51,11 +83,12 @@ app.post("/register", async (req, res) => {
 });
 
 //added all details in one place
-app.post("/register/:userId", async (req, res) => {
+app.post("/publication-patent-details/:userId", async (req, res) => {
     try {
         const userId = req.params.userId;
         const newPublicationInfo = new PublicationInfo({
             userId: userId,
+            publicationId: new mongoose.Types.ObjectId(),
             ...req.body,
         });
         await newPublicationInfo.save();
@@ -84,6 +117,20 @@ app.post("/addition-details/:userId", async (req, res) => {
     } catch (error) {
         console.error("Error saving Development Programme to MongoDB:", error);
         res.status(500).json({ error: "Error saving Development Programme" });
+    }
+});
+
+
+app.get("/profile/:userId", async (req, res) => {
+    const userId = req.params.userId;
+    try {
+        const userData = await User.findOne({ userId: userId }).select("-_id -userId -password");
+        const publicationInfoData = await PublicationInfo.findOne({ userId: userId }).select("-_id -userId");
+
+        res.status(200).json({ userData, publicationInfoData });
+    } catch (error) {
+        console.error("Error fetching user from MongoDB:", error);
+        res.status(500).json({ error: "Error fetching user" });
     }
 });
 
@@ -123,6 +170,27 @@ app.post("/edit-profile/:userId", async (req, res) => {
     }
 });
 
+app.post("/delete-publication-info/:userId/:publicationId", async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        const publicationId = req.params.publicationId;
+        const deletedPublicationInfo = await PublicationInfo.findOneAndDelete({
+            userId: userId,
+            publicationId: publicationId,
+        });
+
+        if (!deletedPublicationInfo) {
+            return res.status(404).json({ error: "Publication info not found" });
+        }
+
+        deletedPublicationInfo.save();
+
+        res.status(201).json({ message: "Publication info deleted successfully" });
+    } catch (error) {
+        console.error("Error deleting publication info to MongoDB:", error);
+        res.status(500).json({ error: "Error deleting publication info" });
+    }
+});
 
 
 app.get("/fetch-data", async (req, res) => {
