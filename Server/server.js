@@ -2,6 +2,8 @@ const express = require("express");
 const mongoose = require("mongoose");
 const xlsx = require("xlsx");
 const fs = require("fs");
+const cors = require('cors');
+const router = require("express").Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { v4: uuidv4 } = require("uuid");
@@ -10,9 +12,13 @@ const PublicationInfo = require("./models/PublicationInfo");
 const DevelopmentProgramme = require("./models/DevelopmentProgrammes");
 const db = require("./db");
 const app = express();
+
+const { sendotp, verifyotp } = require("./controllers/otp.controller");
 require("dotenv").config();
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cors());
 
 // initialize db
 db()
@@ -20,6 +26,9 @@ db()
 app.get("/", (req, res) => {
     res.send("Hello World!");
 });
+
+app.post("/sendotp", sendotp);
+app.post("/verifyotp", verifyotp);
 
 app.post("/login", async (req, res) => {
     const { email, password } = req.body;
@@ -29,7 +38,9 @@ app.post("/login", async (req, res) => {
             return res.status(400).json({ error: "User not found" });
         }
 
-        const isMatch = await bcrypt.compare(password, user.password);
+        // const isMatch = await bcrypt.compare(password, user.password);
+        const isMatch = await bcrypt.compare(password.trim(), user.password);
+
         console.log(password, user.password, isMatch);
         if (!isMatch) {
             return res.status(400).json({ error: "Invalid credentials" });
@@ -41,63 +52,61 @@ app.post("/login", async (req, res) => {
             token,
             user: {
                 id: user._id,
+                userId: user.userId, 
                 username: user.username,
                 email: user.email
             }
         })
+
     } catch (err) {
         console.log(err);
         res.status(500).json({ error: "Server error" });
     }
 });
 
+
+// Register a new user and save publication and patent details
 app.post("/register", async (req, res) => {
     try {
+        const userData = req.body['1'];
+        const publicationInfoData = req.body['2'];
+
         const newUser = new User({
             userId: uuidv4(),
-            firstName: req.body.firstName,
-            lastName: req.body.lastName,
-            email: req.body.email,
-            password: req.body.password,
-            username: req.body.username,
-            age: req.body.age,
-            dateOfBirth: req.body.dateOfBirth,
-            address: {
-                fullAddress: req.body.address.fullAddress,
-                city: req.body.address.city,
-                state: req.body.address.state,
-            },
-            contact: req.body.contact,
-            university: req.body.university,
-            universityId: req.body.universityId,
-            department: req.body.department,
+            firstName: userData.firstName,
+            lastName: userData.lastName,
+            email: userData.email,
+            password: userData.password,
+            username: userData.username,
+            age: userData.age,
+            dateOfBirth: userData.dateOfBirth,
+            fullAddress: userData.fullAddress,
+            city: userData.city,
+            state: userData.state,
+            contact: userData.contact,
+            university: userData.university,
+            universityId: userData.universityId,
+            department: userData.department,
         });
-        console.log(newUser);
-
         await newUser.save();
-        res.status(201).json({ message: "User created successfully" });
-    } catch (error) {
-        console.error("Error saving user to MongoDB:", error);
-        res.status(500).json({ error: "Error saving user" });
-    }
-});
 
-//added all details in one place
-app.post("/publication-patent-details/:userId", async (req, res) => {
-    try {
-        const userId = req.params.userId;
+        // Create and save PublicationInfo document
+        const userId = newUser.userId;
         const newPublicationInfo = new PublicationInfo({
             userId: userId,
             publicationId: new mongoose.Types.ObjectId(),
-            ...req.body,
+            ...publicationInfoData,
         });
         await newPublicationInfo.save();
-        res.status(201).json({ message: "Publication info created successfully" });
+
+
+        res.status(201).json({ message: "User and Publication info created successfully" });
     } catch (error) {
-        console.error("Error saving publication info to MongoDB:", error);
-        res.status(500).json({ error: "Error saving publication info" });
+        console.error("Error saving user and publication info to MongoDB:", error);
+        res.status(500).json({ error: "Error saving user and publication info" });
     }
 });
+
 
 app.post("/addition-details/:userId", async (req, res) => {
     try {

@@ -39,19 +39,18 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
-  address: {
-    fullAddress: {
-      type: String,
-      required: true,
-    },
-    city: {
-      type: String,
-      required: true,
-    },
-    state: {
-      type: String,
-      required: true,
-    },
+  //removed address
+  fullAddress: {
+    type: String,
+    required: true,
+  },
+  city: {
+    type: String,
+    required: true,
+  },
+  state: {
+    type: String,
+    required: true,
   },
   contact: {
     type: Number,
