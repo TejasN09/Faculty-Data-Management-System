@@ -10,6 +10,7 @@ const { v4: uuidv4 } = require("uuid");
 const User = require("./models/User");
 const PublicationInfo = require("./models/PublicationInfo");
 const DevelopmentProgramme = require("./models/DevelopmentProgrammes");
+const PatentInfo = require("./models/Patent");
 const db = require("./db");
 const app = express();
 
@@ -52,7 +53,7 @@ app.post("/login", async (req, res) => {
             token,
             user: {
                 id: user._id,
-                userId: user.userId, 
+                userId: user.userId,
                 username: user.username,
                 email: user.email
             }
@@ -68,8 +69,7 @@ app.post("/login", async (req, res) => {
 // Register a new user and save publication and patent details
 app.post("/register", async (req, res) => {
     try {
-        const userData = req.body['1'];
-        const publicationInfoData = req.body['2'];
+        const userData = req.body;
 
         const newUser = new User({
             userId: uuidv4(),
@@ -77,6 +77,7 @@ app.post("/register", async (req, res) => {
             lastName: userData.lastName,
             email: userData.email,
             password: userData.password,
+            conformPassword: userData.conformPassword,
             username: userData.username,
             age: userData.age,
             dateOfBirth: userData.dateOfBirth,
@@ -90,25 +91,48 @@ app.post("/register", async (req, res) => {
         });
         await newUser.save();
 
-        // Create and save PublicationInfo document
-        const userId = newUser.userId;
-        const newPublicationInfo = new PublicationInfo({
-            userId: userId,
-            publicationId: new mongoose.Types.ObjectId(),
-            ...publicationInfoData,
-        });
-        await newPublicationInfo.save();
-
-
-        res.status(201).json({ message: "User and Publication info created successfully" });
+        res.status(201).json({ message: "User data created successfully" });
     } catch (error) {
-        console.error("Error saving user and publication info to MongoDB:", error);
-        res.status(500).json({ error: "Error saving user and publication info" });
+        console.error("Error saving user info to MongoDB:", error);
+        res.status(500).json({ error: "Error saving user info" });
     }
 });
 
+// publication details
+app.post("/publication-details/:userId", async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        const newPublicationInfo = new PublicationInfo({
+            userId: userId,
+            publicationId: new mongoose.Types.ObjectId(),
+            ...req.body,
+        });
+        await newPublicationInfo.save();
+        res.status(201).json({ message: "Publication info created successfully" });
+    } catch (error) {
+        console.error("Error saving publication info to MongoDB:", error);
+        res.status(500).json({ error: "Error saving publication info" });
+    }
+});
 
-app.post("/addition-details/:userId", async (req, res) => {
+// patent details
+app.post("/patent-details/:userId", async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        const newPatentInfo = new PatentInfo({
+            userId: userId,
+            ...req.body,
+        });
+        await newPatentInfo.save();
+        res.status(201).json({ message: "Patent info created successfully" });
+    } catch (error) {
+        console.error("Error saving patent info to MongoDB:", error);
+        res.status(500).json({ error: "Error saving patent info" });
+    }
+});
+
+// development programme details
+app.post("/programme-details/:userId", async (req, res) => {
     try {
         const userId = req.params.userId;
         const newDevelopmentProgramme = new DevelopmentProgramme({
@@ -157,11 +181,9 @@ app.post("/edit-profile/:userId", async (req, res) => {
                 password: req.body.password,
                 age: req.body.age,
                 dateOfBirth: req.body.dateOfBirth,
-                address: {
-                    fullAddress: req.body.address.fullAddress,
-                    city: req.body.address.city,
-                    state: req.body.address.state,
-                },
+                fullAddress: req.body.address.fullAddress,
+                city: req.body.address.city,
+                state: req.body.address.state,
                 contact: req.body.contact,
                 university: req.body.university,
                 universityId: req.body.universityId,
@@ -198,6 +220,28 @@ app.post("/delete-publication-info/:userId/:publicationId", async (req, res) => 
     } catch (error) {
         console.error("Error deleting publication info to MongoDB:", error);
         res.status(500).json({ error: "Error deleting publication info" });
+    }
+});
+
+// share profile
+app.post("/share-profile/:userId", async (req, res) => {
+    try {
+        const userId = req.params.userId;
+
+        const [sharedProfile, publicationInfoData, patentInfoData] = await Promise.all([
+            User.findOne({ userId }).select("-_id -userId -password"),
+            PublicationInfo.findOne({ userId }).select("-_id -userId"),
+            PatentInfo.findOne({ userId }).select("-_id -userId")
+        ]);
+
+        if (!sharedProfile) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        res.status(200).json({ sharedProfile, publicationInfoData, patentInfoData });
+    } catch (error) {
+        console.error("Error fetching user from MongoDB:", error);
+        res.status(500).json({ error: "Error fetching user" });
     }
 });
 

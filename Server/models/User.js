@@ -26,6 +26,11 @@ const userSchema = new mongoose.Schema({
     required: true,
     minLength: 6,
   },
+  conformPassword: {
+    type: String,
+    required: true,
+    minLength: 6,
+  },
   age: {
     type: Number,
     required: true,
