@@ -67,17 +67,17 @@ app.post("/login", async (req, res) => {
 
 
 // Register a new user and save publication and patent details
-app.post("/register", async (req, res) => {
+app.post("/signup", async (req, res) => {
     try {
         const userData = req.body;
 
-        const newUser = new User({
+        const user = new User({
             userId: uuidv4(),
             firstName: userData.firstName,
             lastName: userData.lastName,
             email: userData.email,
             password: userData.password,
-            conformPassword: userData.conformPassword,
+            confirmPassword: userData.confirmPassword,
             username: userData.username,
             age: userData.age,
             dateOfBirth: userData.dateOfBirth,
@@ -89,9 +89,9 @@ app.post("/register", async (req, res) => {
             universityId: userData.universityId,
             department: userData.department,
         });
-        await newUser.save();
+        await user.save();
 
-        res.status(201).json({ message: "User data created successfully" });
+        res.status(201).json({ user,message: "User data created successfully" });
     } catch (error) {
         console.error("Error saving user info to MongoDB:", error);
         res.status(500).json({ error: "Error saving user info" });
