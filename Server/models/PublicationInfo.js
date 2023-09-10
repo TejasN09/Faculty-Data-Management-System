@@ -6,6 +6,14 @@ const publicationInfoSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     default: mongoose.Types.ObjectId,
   },
+  publicationTitle: {
+    type: String,
+    required: true,
+  },
+  publicationDescription: {
+    type: String,
+    required: true,
+  },
   userId: {
     type: String,
     default: uuidv4(),

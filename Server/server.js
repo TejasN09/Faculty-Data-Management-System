@@ -224,19 +224,20 @@ app.post("/delete-publication-info/:userId/:publicationId", async (req, res) => 
 });
 
 // share profile
-app.post("/share-profile/:userId", async (req, res) => {
+app.get("/share-profile/:userId", async (req, res) => {
     try {
         const userId = req.params.userId;
 
         const [sharedProfile, publicationInfoData, patentInfoData] = await Promise.all([
             User.findOne({ userId }).select("-_id -userId -password"),
-            PublicationInfo.findOne({ userId }).select("-_id -userId"),
-            PatentInfo.findOne({ userId }).select("-_id -userId")
+            PublicationInfo.find({ userId }).select("-_id -userId"),
+            PatentInfo.find({ userId }).select("-_id -userId")
         ]);
 
         if (!sharedProfile) {
             return res.status(404).json({ error: "User not found" });
         }
+        console.log(sharedProfile, publicationInfoData, patentInfoData);
 
         res.status(200).json({ sharedProfile, publicationInfoData, patentInfoData });
     } catch (error) {
