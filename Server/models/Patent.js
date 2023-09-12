@@ -9,19 +9,18 @@ const patentSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    patentLink: {
+        type: String,
+    },
+    patentDate: {
+        type: Date,
+        required: true,
+    },
     statusOfPatent: {
         type: String,
         required: true,
     },
-    inventorsName: {
-        type: String,
-        required: true,
-    },
     titleOfPatent: {
-        type: String,
-        required: true,
-    },
-    applicantsNumber: {
         type: String,
         required: true,
     },
@@ -31,21 +30,12 @@ const patentSchema = new mongoose.Schema({
     },
     patentPublishedDate: {
         type: Date,
-        required: true,
     },
     patentGrantedDate: {
         type: Date,
     },
     patentPublishedNumber: {
         type: String,
-        required: true,
-    },
-    patentGrantedNumber: {
-        type: String,
-    },
-    assigneeName: {
-        type: String,
-        required: true,
     },
 });
 

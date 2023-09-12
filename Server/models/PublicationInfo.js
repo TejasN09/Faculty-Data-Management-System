@@ -18,41 +18,48 @@ const publicationInfoSchema = new mongoose.Schema({
     type: String,
     default: uuidv4(),
   },
-  wosSubjectId: {
-    type: String,
+  // wosSubjectId: {
+  //   type: String,
+  //   required: true,
+  // },
+  // wosSubject: {
+  //   type: String,
+  //   required: true,
+  // },
+  // expertiseId: {
+  //   type: String,
+  //   required: true,
+  // },
+  // expertise: {
+  //   type: String,
+  //   required: true,
+  // },
+  // briefExpertise: {
+  //   type: String,
+  //   required: true,
+  // },
+  // qualification: {
+  //   type: String,
+  //   required: true,
+  // },
+  // subject: {
+  //   type: String,
+  //   required: true,
+  // },
+  // workingFromMonth: {
+  //   type: String,
+  //   required: true,
+  // },
+  // workingFromYear: {
+  //   type: String,
+  //   required: true,
+  // },
+  publicationDate: {
+    type: Date,
     required: true,
   },
-  wosSubject: {
+  publicationLink: {
     type: String,
-    required: true,
-  },
-  expertiseId: {
-    type: String,
-    required: true,
-  },
-  expertise: {
-    type: String,
-    required: true,
-  },
-  briefExpertise: {
-    type: String,
-    required: true,
-  },
-  qualification: {
-    type: String,
-    required: true,
-  },
-  subject: {
-    type: String,
-    required: true,
-  },
-  workingFromMonth: {
-    type: String,
-    required: true,
-  },
-  workingFromYear: {
-    type: String,
-    required: true,
   },
   orcidId: {
     type: String,

@@ -39,11 +39,6 @@ const userSchema = new mongoose.Schema({
     type: Date,
     required: true,
   },
-  username: {
-    type: String,
-    required: true,
-    unique: true,
-  },
   //removed address
   fullAddress: {
     type: String,
@@ -72,6 +67,12 @@ const userSchema = new mongoose.Schema({
   department: {
     type: String,
     required: true,
+  },
+  googleScholarIdLink: {
+    type: String,
+  },
+  scopusIdLink: {
+    type: String,
   },
 });
 

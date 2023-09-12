@@ -88,10 +88,12 @@ app.post("/signup", async (req, res) => {
             university: userData.university,
             universityId: userData.universityId,
             department: userData.department,
+            googleScholarIdLink: userData.googleScholarIdLink,
+            scopusIdLink: userData.scopusIdLink,
         });
         await user.save();
 
-        res.status(201).json({ user,message: "User data created successfully" });
+        res.status(201).json({ user, message: "User data created successfully" });
     } catch (error) {
         console.error("Error saving user info to MongoDB:", error);
         res.status(500).json({ error: "Error saving user info" });
@@ -102,10 +104,31 @@ app.post("/signup", async (req, res) => {
 app.post("/publication-details/:userId", async (req, res) => {
     try {
         const userId = req.params.userId;
+        const {
+            publicationTitle,
+            publicationDescription,
+            publicationDate,
+            publicationLink,
+            orcidId,
+            researcherId,
+            scopusId,
+            googleScholarId,
+        } = req.body;
+
+        if (!publicationDate || !publicationDescription || !publicationTitle) {
+            return res.status(400).json({ error: "Required fields are missing" });
+        }
         const newPublicationInfo = new PublicationInfo({
             userId: userId,
             publicationId: new mongoose.Types.ObjectId(),
-            ...req.body,
+            publicationTitle: publicationTitle,
+            publicationDescription: publicationDescription,
+            publicationDate: publicationDate,
+            publicationLink: publicationLink,
+            orcidId: orcidId,
+            researcherId: researcherId,
+            scopusId: scopusId,
+            googleScholarId: googleScholarId,
         });
         await newPublicationInfo.save();
         res.status(201).json({ message: "Publication info created successfully" });
@@ -119,9 +142,29 @@ app.post("/publication-details/:userId", async (req, res) => {
 app.post("/patent-details/:userId", async (req, res) => {
     try {
         const userId = req.params.userId;
+
+        const {
+            patentName,
+            patentDate,
+            patentLink,
+            patentApplicationId,
+            statusOfPatent,
+            patentFilledDate,
+            patentPublishedDate,
+            patentGrantedDate,
+            patentPublishedNumber
+        } = req.body;
         const newPatentInfo = new PatentInfo({
             userId: userId,
-            ...req.body,
+            titleOfPatent: patentName,
+            patentApplicationId: patentApplicationId,
+            patentLink: patentLink,
+            statusOfPatent: statusOfPatent,
+            patentDate: patentDate,
+            patentFilledDate: patentFilledDate,
+            patentPublishedDate: patentPublishedDate,
+            patentGrantedDate: patentGrantedDate,
+            patentPublishedNumber: patentPublishedNumber
         });
         await newPatentInfo.save();
         res.status(201).json({ message: "Patent info created successfully" });
@@ -168,7 +211,7 @@ app.get("/profile/:userId", async (req, res) => {
 });
 
 //user profile can be updated
-app.post("/edit-profile/:userId", async (req, res) => {
+app.put("/edit-profile/:userId", async (req, res) => {
     try {
         const userId = req.params.userId;
 
@@ -194,7 +237,7 @@ app.post("/edit-profile/:userId", async (req, res) => {
 
         updatedUser.save();
 
-        res.status(201).json({ message: "User updated successfully" });
+        res.status(201).json({ message: "User updated successfully", updatedUser });
     } catch (error) {
         console.error("Error updating user to MongoDB:", error);
         res.status(500).json({ error: "Error updating user" });
