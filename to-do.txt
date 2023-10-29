@@ -1,0 +1,15 @@
+Addition
+
+(front-end)
+1.admin dashboard
+2.fix logout
+3.dashboard form patent/publication
+4.fixing css on all pages making responsive 
+
+(back-end)
+1.maintaining session
+2.updating schema and connecting
+3.writing query for excel thing 
+
+subtraction
+1.share profile
